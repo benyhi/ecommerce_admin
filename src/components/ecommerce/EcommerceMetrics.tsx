@@ -1,56 +1,55 @@
 "use client";
+
+import { Badge, Card, Group, SimpleGrid, Text, ThemeIcon } from "@mantine/core";
+import { IconArrowDown, IconArrowUp, IconBox, IconUsers } from "@tabler/icons-react";
 import React from "react";
-import Badge from "../ui/badge/Badge";
-import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons";
+
+const metrics = [
+  {
+    label: "Customers",
+    value: "3,782",
+    change: 11.01,
+    icon: IconUsers,
+  },
+  {
+    label: "Orders",
+    value: "5,359",
+    change: -9.05,
+    icon: IconBox,
+  },
+];
 
 export const EcommerceMetrics = () => {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-      {/* <!-- Metric Item Start --> */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
-        </div>
+    <SimpleGrid cols={{ base: 1, sm: 2 }}>
+      {metrics.map((m) => {
+        const positive = m.change >= 0;
+        return (
+          <Card key={m.label} shadow="sm" padding="lg" radius="lg">
+            <ThemeIcon variant="light" size="xl" radius="md" color="gray">
+              <m.icon size={24} />
+            </ThemeIcon>
 
-        <div className="flex items-end justify-between mt-5">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Customers
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
-            </h4>
-          </div>
-          <Badge color="success">
-            <ArrowUpIcon />
-            11.01%
-          </Badge>
-        </div>
-      </div>
-      {/* <!-- Metric Item End --> */}
-
-      {/* <!-- Metric Item Start --> */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <BoxIconLine className="text-gray-800 dark:text-white/90" />
-        </div>
-        <div className="flex items-end justify-between mt-5">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Orders
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
-            </h4>
-          </div>
-
-          <Badge color="error">
-            <ArrowDownIcon className="text-error-500" />
-            9.05%
-          </Badge>
-        </div>
-      </div>
-      {/* <!-- Metric Item End --> */}
-    </div>
+            <Group justify="space-between" mt="md" align="flex-end">
+              <div>
+                <Text size="sm" c="dimmed">{m.label}</Text>
+                <Text fw={700} size="xl" mt={4}>{m.value}</Text>
+              </div>
+              <Badge
+                color={positive ? "teal" : "red"}
+                variant="light"
+                leftSection={
+                  positive
+                    ? <IconArrowUp size={14} />
+                    : <IconArrowDown size={14} />
+                }
+              >
+                {Math.abs(m.change)}%
+              </Badge>
+            </Group>
+          </Card>
+        );
+      })}
+    </SimpleGrid>
   );
 };

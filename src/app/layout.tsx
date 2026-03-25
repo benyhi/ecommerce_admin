@@ -1,8 +1,8 @@
-import { Outfit } from 'next/font/google';
-import './globals.css';
-import "flatpickr/dist/flatpickr.css";
-import { SidebarProvider } from '@/context/SidebarContext';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ColorSchemeScript } from "@mantine/core";
+import { Outfit } from "next/font/google";
+import "./globals.css";
+
+import { AppProviders } from "@/providers/AppProviders";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -14,11 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${outfit.className} dark:bg-gray-900`}>
-        <ThemeProvider>
-          <SidebarProvider>{children}</SidebarProvider>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ColorSchemeScript defaultColorScheme="light" />
+      </head>
+      <body className={outfit.className}>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
