@@ -11,6 +11,7 @@ import {
   IconSettings,
   IconUser,
   IconUsers,
+  IconWorld,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,6 +25,7 @@ const navItems = [
   { icon: IconCategory, label: "Categorias", href: "/categorias" },
   { icon: IconBox, label: "Productos", href: "/productos" },
   { icon: IconClipboardList, label: "Pedidos", href: "/pedidos" },
+  { icon: IconWorld, label: "Sitio Web", href: "/sitio" },
   { icon: IconUser, label: "Usuarios", href: "/usuarios" },
   { icon: IconSettings, label: "Configuracion", href: "/configuracion" },
 ];

@@ -45,30 +45,44 @@ export function createAdminService<T>(basePath: string): AdminService<T> {
 
 // ── Pre-built admin service instances ───────────────────
 
+// Catalog (write endpoints require auth)
 export const categoriesAdmin = createAdminService<Record<string, unknown>>(
-  "/api/catalog/categories",
+  "/api/admin/catalog/categories",
 );
-
 export const productsAdmin = createAdminService<Record<string, unknown>>(
-  "/api/catalog/products",
+  "/api/admin/catalog/products",
+);
+export const optionGroupsAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/catalog/option-groups",
+);
+export const optionsAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/catalog/options",
 );
 
+// Website / site configuration
+export const postsAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/site/posts",
+);
+export const bannersAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/site/banners",
+);
+export const featuredAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/site/featured",
+);
+
+// Other admin resources
 export const ordersAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/orders",
 );
-
 export const usersAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/users",
 );
-
 export const customersAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/customers",
 );
-
 export const configAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/config",
 );
-
 export const metricsAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/metrics",
 );
@@ -82,7 +96,9 @@ export type AdminResourceName =
   | "pedidos"
   | "usuarios"
   | "clientes"
-  | "configuracion";
+  | "configuracion"
+  | "sitio-publicaciones"
+  | "sitio-carrusel";
 
 const adminServiceMap: Record<AdminResourceName, AdminService<Record<string, unknown>>> = {
   metricas: metricsAdmin,
@@ -92,6 +108,8 @@ const adminServiceMap: Record<AdminResourceName, AdminService<Record<string, unk
   usuarios: usersAdmin,
   clientes: customersAdmin,
   configuracion: configAdmin,
+  "sitio-publicaciones": postsAdmin,
+  "sitio-carrusel": bannersAdmin,
 };
 
 /**

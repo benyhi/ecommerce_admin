@@ -1,6 +1,6 @@
 import { ResourceName, Role } from "@/context/AuthContext";
 
-export type FieldType = "text" | "number" | "select";
+export type FieldType = "text" | "textarea" | "number" | "select" | "switch";
 
 export type ResourceField = {
   key: string;
@@ -66,6 +66,7 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
     fields: [
       { key: "name", label: "Nombre", type: "text", required: true },
       { key: "order", label: "Orden", type: "number" },
+      { key: "active", label: "Activo", type: "switch" },
     ],
     tableColumns: [
       { key: "name", label: "Nombre" },
@@ -171,6 +172,61 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
     name: "Punto de Venta",
     resource: "pos",
     description: "Módulo de punto de venta — no usa la tabla CRUD.",
+    fields: [],
+    tableColumns: [],
+  },
+  "sitio-publicaciones": {
+    name: "Publicaciones",
+    resource: "sitio-publicaciones",
+    description: "Artículos y noticias del sitio.",
+    fields: [
+      { key: "title", label: "Título", type: "text", required: true },
+      { key: "excerpt", label: "Resumen", type: "textarea" },
+      { key: "content", label: "Contenido", type: "textarea" },
+      { key: "image_url", label: "URL de imagen", type: "text", placeholder: "https://..." },
+      { key: "published_at", label: "Fecha de publicación", type: "text", placeholder: "2025-01-15T10:00:00Z" },
+      { key: "order", label: "Orden", type: "number" },
+      { key: "active", label: "Activo", type: "switch" },
+    ],
+    tableColumns: [
+      { key: "title", label: "Título" },
+      { key: "excerpt", label: "Resumen" },
+      { key: "published_at", label: "Publicado" },
+      { key: "active", label: "Estado" },
+    ],
+  },
+  "sitio-carrusel": {
+    name: "Carrusel",
+    resource: "sitio-carrusel",
+    description: "Banners del carrusel de la página de inicio.",
+    fields: [
+      { key: "title", label: "Título", type: "text", required: true },
+      { key: "subtitle", label: "Subtítulo", type: "text" },
+      { key: "description", label: "Descripción", type: "textarea" },
+      { key: "image_url", label: "URL de imagen", type: "text", required: true, placeholder: "https://..." },
+      { key: "link_url", label: "URL de enlace", type: "text", placeholder: "https://... o /catalogo" },
+      { key: "button_text", label: "Texto del botón", type: "text", placeholder: "Ver más" },
+      { key: "order", label: "Orden", type: "number" },
+      { key: "active", label: "Activo", type: "switch" },
+    ],
+    tableColumns: [
+      { key: "title", label: "Título" },
+      { key: "subtitle", label: "Subtítulo" },
+      { key: "order", label: "Orden" },
+      { key: "active", label: "Estado" },
+    ],
+  },
+  "sitio-destacados": {
+    name: "Destacados",
+    resource: "sitio-destacados",
+    description: "Productos destacados en la página de inicio.",
+    fields: [],
+    tableColumns: [],
+  },
+  sitio: {
+    name: "Sitio Web",
+    resource: "sitio",
+    description: "Configuración del sitio web.",
     fields: [],
     tableColumns: [],
   },

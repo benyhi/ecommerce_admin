@@ -1,9 +1,9 @@
-import { ResourcePage } from "@/modules/resources/ResourcePage";
+import { ProductsPage } from "@/modules/productos/ProductsPage";
 
 export const metadata = {
   title: "Productos",
 };
 
 export default function ProductosPage() {
-  return <ResourcePage resource="productos" />;
+  return <ProductsPage />;
 }

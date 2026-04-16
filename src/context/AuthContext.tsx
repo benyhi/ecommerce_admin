@@ -27,7 +27,11 @@ export type ResourceName =
   | "usuarios"
   | "clientes"
   | "configuracion"
-  | "pos";
+  | "pos"
+  | "sitio-publicaciones"
+  | "sitio-carrusel"
+  | "sitio-destacados"
+  | "sitio";
 
 type UserInfo = {
   id: string;

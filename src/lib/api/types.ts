@@ -59,6 +59,26 @@ export type RefreshResponse = {
   access: string;
 };
 
+// ── Admin Users ─────────────────────────────────────────
+
+export type UserStatus = "active" | "inactive";
+
+export type TenantUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+};
+
+export type TenantUserWrite = {
+  name?: string;
+  email: string;
+  role: UserRole;
+  status?: UserStatus;
+  password?: string;
+};
+
 // ── Catalog ─────────────────────────────────────────────
 
 export type Category = {
@@ -114,6 +134,45 @@ export type Option = {
   price: string;
   active: boolean;
   order: number;
+};
+
+// ── Website / Site config ────────────────────────────────────────────────────
+
+export type Post = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  image_url: string;
+  published_at: string | null;
+  active: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CarouselBanner = {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image_url: string;
+  link_url: string;
+  button_text: string;
+  order: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FeaturedProductItem = {
+  id: string;
+  product: string;
+  product_detail: Product | null;
+  order: number;
+  active: boolean;
+  created_at: string;
 };
 
 // ── Query params ────────────────────────────────────────

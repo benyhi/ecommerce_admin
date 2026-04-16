@@ -11,8 +11,10 @@ import {
   Pagination,
   Select,
   Stack,
+  Switch,
   Table,
   Text,
+  Textarea,
   TextInput,
   Title,
 } from "@mantine/core";
@@ -122,10 +124,16 @@ export function ResourcePage({ resource }: ResourcePageProps) {
 
   const openForm = (mode: "create" | "edit", item?: ResourceItem) => {
     const initialValues = config.fields.reduce<Record<string, unknown>>(
-      (acc, field) => ({
-        ...acc,
-        [field.key]: item ? (item as Record<string, unknown>)[field.key] ?? "" : "",
-      }),
+      (acc, field) => {
+        if (field.type === "switch") {
+          const val = item ? (item as Record<string, unknown>)[field.key] : true;
+          return { ...acc, [field.key]: val === undefined ? true : Boolean(val) };
+        }
+        return {
+          ...acc,
+          [field.key]: item ? (item as Record<string, unknown>)[field.key] ?? "" : "",
+        };
+      },
       { status: item?.status ?? "active", name: item?.name ?? "" }
     );
 
@@ -380,6 +388,29 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           onChange={(value) => updateField(field, value ?? 0)}
           thousandSeparator="."
           decimalSeparator="," 
+        />
+      );
+    }
+
+    if (field.type === "switch") {
+      return (
+        <Switch
+          key={field.key}
+          label={field.label}
+          checked={Boolean(values[field.key])}
+          onChange={(e) => updateField(field, e.currentTarget.checked)}
+        />
+      );
+    }
+
+    if (field.type === "textarea") {
+      return (
+        <Textarea
+          {...commonProps}
+          value={(values[field.key] as string) ?? ""}
+          onChange={(event) => updateField(field, event.currentTarget.value)}
+          autosize
+          minRows={3}
         />
       );
     }
