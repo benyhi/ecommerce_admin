@@ -1,6 +1,6 @@
 import { ResourceName, Role } from "@/context/AuthContext";
 
-export type FieldType = "text" | "textarea" | "number" | "select" | "switch";
+export type FieldType = "text" | "textarea" | "number" | "select" | "switch" | "image";
 
 export type ResourceField = {
   key: string;
@@ -30,6 +30,29 @@ const statusOptions = [
   { value: "pending", label: "Pendiente" },
   { value: "draft", label: "Borrador" },
   { value: "cancelled", label: "Cancelado" },
+];
+
+const orderStatusOptions = [
+  { value: "pending", label: "Pendiente" },
+  { value: "confirmed", label: "Confirmado" },
+  { value: "processing", label: "En proceso" },
+  { value: "shipped", label: "Enviado" },
+  { value: "delivered", label: "Entregado" },
+  { value: "cancelled", label: "Cancelado" },
+];
+
+const paymentMethodOptions = [
+  { value: "cash", label: "Efectivo" },
+  { value: "transfer", label: "Transferencia" },
+  { value: "card", label: "Tarjeta" },
+  { value: "mercadopago", label: "MercadoPago" },
+];
+
+const paymentStatusOptions = [
+  { value: "pending", label: "Pendiente" },
+  { value: "paid", label: "Pagado" },
+  { value: "failed", label: "Fallido" },
+  { value: "refunded", label: "Reembolsado" },
 ];
 
 const roleOptions: { value: Role; label: string }[] = [
@@ -97,19 +120,24 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
     resource: "pedidos",
     description: "Pedidos recientes con totales y estado.",
     fields: [
-      { key: "orderNumber", label: "Número de pedido", type: "text", required: true },
-      { key: "customer", label: "Cliente", type: "text", required: true },
-      { key: "total", label: "Total", type: "number", required: true },
-      { key: "status", label: "Estado", type: "select", options: statusOptions },
+      { key: "customer_name", label: "Nombre del cliente", type: "text", required: true },
+      { key: "customer_email", label: "Email del cliente", type: "text" },
+      { key: "customer_phone", label: "Teléfono", type: "text" },
+      { key: "status", label: "Estado", type: "select", options: orderStatusOptions },
+      { key: "payment_method", label: "Método de pago", type: "select", options: paymentMethodOptions },
+      { key: "payment_status", label: "Estado de pago", type: "select", options: paymentStatusOptions },
+      { key: "discount", label: "Descuento", type: "number" },
+      { key: "notes", label: "Notas", type: "textarea" },
     ],
     tableColumns: [
-      { key: "orderNumber", label: "Pedido" },
-      { key: "customer", label: "Cliente" },
+      { key: "order_number", label: "Pedido" },
+      { key: "customer_name", label: "Cliente" },
       { key: "total", label: "Total" },
       { key: "status", label: "Estado" },
-      { key: "updatedAt", label: "Actualizado" },
+      { key: "payment_status", label: "Pago" },
+      { key: "created_at", label: "Fecha" },
     ],
-    filterOptions: { status: statusOptions },
+    filterOptions: { status: orderStatusOptions },
   },
   usuarios: {
     name: "Usuarios",
@@ -183,7 +211,7 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "title", label: "Título", type: "text", required: true },
       { key: "excerpt", label: "Resumen", type: "textarea" },
       { key: "content", label: "Contenido", type: "textarea" },
-      { key: "image_url", label: "URL de imagen", type: "text", placeholder: "https://..." },
+      { key: "image_url", label: "Imagen", type: "image" },
       { key: "published_at", label: "Fecha de publicación", type: "text", placeholder: "2025-01-15T10:00:00Z" },
       { key: "order", label: "Orden", type: "number" },
       { key: "active", label: "Activo", type: "switch" },
@@ -203,7 +231,7 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "title", label: "Título", type: "text", required: true },
       { key: "subtitle", label: "Subtítulo", type: "text" },
       { key: "description", label: "Descripción", type: "textarea" },
-      { key: "image_url", label: "URL de imagen", type: "text", required: true, placeholder: "https://..." },
+      { key: "image_url", label: "Imagen", type: "image", required: true },
       { key: "link_url", label: "URL de enlace", type: "text", placeholder: "https://... o /catalogo" },
       { key: "button_text", label: "Texto del botón", type: "text", placeholder: "Ver más" },
       { key: "order", label: "Orden", type: "number" },

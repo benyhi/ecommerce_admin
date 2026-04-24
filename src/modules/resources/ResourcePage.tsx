@@ -25,6 +25,7 @@ import React, { useMemo, useState } from "react";
 
 import { ResourceName, useAuth } from "@/context/AuthContext";
 import { useCrudResource } from "@/hooks/useCrudResource";
+import { ImagePickerField } from "@/components/common/ImagePickerModal";
 import {
   ResourceConfig,
   ResourceField,
@@ -411,6 +412,19 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           onChange={(event) => updateField(field, event.currentTarget.value)}
           autosize
           minRows={3}
+        />
+      );
+    }
+
+    if (field.type === "image") {
+      return (
+        <ImagePickerField
+          key={field.key}
+          label={field.label}
+          value={(values[field.key] as string) ?? ""}
+          onChange={(url) => updateField(field, url)}
+          required={field.required}
+          error={errors[field.key]}
         />
       );
     }

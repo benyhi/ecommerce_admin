@@ -58,6 +58,12 @@ export const optionGroupsAdmin = createAdminService<Record<string, unknown>>(
 export const optionsAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/catalog/options",
 );
+export const attributesAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/catalog/attributes",
+);
+export const badgesAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/catalog/badges",
+);
 
 // Website / site configuration
 export const postsAdmin = createAdminService<Record<string, unknown>>(

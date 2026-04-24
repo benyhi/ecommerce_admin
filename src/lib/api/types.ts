@@ -175,6 +175,137 @@ export type FeaturedProductItem = {
   created_at: string;
 };
 
+// ── Product detail ──────────────────────────────────────
+
+export type ProductAttribute = {
+  id: string;
+  product: string;
+  name: string;
+  value: string;
+  order: number;
+};
+
+export type ProductBadge = {
+  id: string;
+  title: string;
+  description: string;
+  icon: "truck" | "shield" | "box" | "check" | "star" | "zap";
+  active: boolean;
+  order: number;
+};
+
+// ── Payments ────────────────────────────────────────────
+
+export type PaymentGateway = "mercadopago" | "naranja_x" | "transfer" | "card" | "debit";
+
+export type PaymentStatus =
+  | "pending"
+  | "in_process"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "refunded"
+  | "charged_back";
+
+export type PaymentAttempt = {
+  id: string;
+  status: "pending" | "success" | "failed";
+  error_message: string;
+  created_at: string;
+};
+
+export type Payment = {
+  id: string;
+  gateway: PaymentGateway;
+  gateway_display: string;
+  status: PaymentStatus;
+  status_display: string;
+  amount: string;
+  currency: string;
+  installments: number;
+  installment_amount: string | null;
+  payer_name: string;
+  payer_email: string;
+  payer_phone?: string;
+  external_id: string;
+  external_status?: string;
+  checkout_url: string | null;
+  gateway_response?: Record<string, unknown>;
+  notes?: string;
+  order_number: string | null;
+  attempt_count?: number;
+  attempts?: PaymentAttempt[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type GatewayConfig = {
+  id: string;
+  gateway: PaymentGateway;
+  gateway_display: string;
+  is_enabled: boolean;
+  config: Record<string, string>;
+  updated_at: string;
+};
+
+// ── Orders ──────────────────────────────────────────────
+
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
+export type OrderPaymentMethod = "cash" | "transfer" | "card" | "mercadopago";
+export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
+
+export type OrderItem = {
+  id: string;
+  product: string | null;
+  product_name: string;
+  quantity: number;
+  unit_price: string;
+  subtotal: string;
+};
+
+export type Order = {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  status: OrderStatus;
+  payment_method: OrderPaymentMethod;
+  payment_status: OrderPaymentStatus;
+  notes: string;
+  subtotal: string;
+  discount: string;
+  total: string;
+  item_count?: number;
+  items?: OrderItem[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrderWrite = {
+  customer_name: string;
+  customer_email?: string;
+  customer_phone?: string;
+  status?: OrderStatus;
+  payment_method?: OrderPaymentMethod;
+  payment_status?: OrderPaymentStatus;
+  notes?: string;
+  discount?: string;
+  items?: {
+    product?: string | null;
+    product_name: string;
+    quantity: number;
+    unit_price: string;
+  }[];
+};
+
 // ── Query params ────────────────────────────────────────
 
 export type QueryParams = {

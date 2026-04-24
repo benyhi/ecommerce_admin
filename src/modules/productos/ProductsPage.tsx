@@ -25,6 +25,7 @@ import {
 } from "@mantine/core";
 import {
   IconEdit,
+  IconLayoutGrid,
   IconPlus,
   IconSearch,
   IconTrash,
@@ -33,8 +34,10 @@ import {
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useDebouncedValue } from "@mantine/hooks";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { httpClient } from "@/lib/api/httpClient";
+import { ImagePickerField } from "@/components/common/ImagePickerModal";
 import type { Product, Category, OptionGroup, Option } from "@/lib/api/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,6 +48,7 @@ type ProductRow = Product & { category_detail?: { id: string; name: string; orde
 
 export function ProductsPage() {
   const { can } = useAuth();
+  const router = useRouter();
 
   // Products state
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -170,7 +174,7 @@ export function ProductsPage() {
               <Table.Th>Precio</Table.Th>
               <Table.Th>Estado</Table.Th>
               <Table.Th>Orden</Table.Th>
-              <Table.Th w={140}>Acciones</Table.Th>
+              <Table.Th w={160}>Acciones</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -205,6 +209,14 @@ export function ProductsPage() {
                       onClick={() => setOptionsProduct(p)}
                     >
                       <IconSettings size={16} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="subtle"
+                      color="teal"
+                      title="Configurar vista del producto"
+                      onClick={() => router.push(`/productos/${p.id}/detalle`)}
+                    >
+                      <IconLayoutGrid size={16} />
                     </ActionIcon>
                     <ActionIcon
                       variant="subtle"
@@ -274,6 +286,8 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [active, setActive] = useState(true);
   const [order, setOrder] = useState(0);
+  const [imageFilename, setImageFilename] = useState<string | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -288,6 +302,8 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
       );
       setActive(product?.active ?? true);
       setOrder(product?.order ?? 0);
+      setImageFilename(product?.image_filename ?? null);
+      setImagePreviewUrl(product?.image_url ?? "");
       setErrors({});
     }
   }, [opened, product]);
@@ -305,7 +321,7 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const payload = { name, description, price, category: categoryId, active, order };
+      const payload = { name, description, price, category: categoryId, active, order, image_filename: imageFilename };
       if (isEdit && product) {
         await httpClient.put(`/api/admin/catalog/products/${product.id}/`, payload);
         notifications.show({ color: "blue", title: "Actualizado", message: "Producto guardado." });
@@ -374,6 +390,14 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
             label="Activo"
             checked={active}
             onChange={(e) => setActive(e.currentTarget.checked)}
+          />
+          <ImagePickerField
+            label="Imagen del producto"
+            value={imagePreviewUrl}
+            onChange={(url, key) => {
+              setImagePreviewUrl(url);
+              if (key !== undefined) setImageFilename(key);
+            }}
           />
           <Divider />
           <Group justify="flex-end">
