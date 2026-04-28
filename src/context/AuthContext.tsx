@@ -31,7 +31,8 @@ export type ResourceName =
   | "sitio-publicaciones"
   | "sitio-carrusel"
   | "sitio-destacados"
-  | "sitio";
+  | "sitio"
+  | "cupones";
 
 type UserInfo = {
   id: string;

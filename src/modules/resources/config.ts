@@ -258,4 +258,43 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
     fields: [],
     tableColumns: [],
   },
+  cupones: {
+    name: "Cupón",
+    resource: "cupones",
+    description: "Cupones y descuentos para pedidos.",
+    fields: [
+      { key: "code", label: "Código", type: "text", required: true, placeholder: "Ej: VERANO20" },
+      { key: "description", label: "Descripción", type: "text", placeholder: "Ej: Descuento de verano" },
+      {
+        key: "discount_type",
+        label: "Tipo de descuento",
+        type: "select",
+        required: true,
+        options: [
+          { value: "percentage", label: "Porcentaje (%)" },
+          { value: "fixed", label: "Monto fijo ($)" },
+        ],
+      },
+      { key: "value", label: "Valor", type: "number", required: true },
+      { key: "min_order_amount", label: "Monto mínimo de pedido", type: "number" },
+      { key: "max_uses", label: "Usos máximos (vacío = ilimitado)", type: "number" },
+      { key: "expires_at", label: "Expira el (ISO 8601)", type: "text", placeholder: "2026-12-31T23:59:00Z" },
+      { key: "is_active", label: "Activo", type: "switch" },
+    ],
+    tableColumns: [
+      { key: "code", label: "Código" },
+      { key: "discount_type_display", label: "Tipo" },
+      { key: "value", label: "Valor" },
+      { key: "used_count", label: "Usos" },
+      { key: "max_uses", label: "Máx. usos" },
+      { key: "is_active", label: "Estado" },
+      { key: "expires_at", label: "Vence" },
+    ],
+    filterOptions: {
+      status: [
+        { value: "true", label: "Activos" },
+        { value: "false", label: "Inactivos" },
+      ],
+    },
+  },
 };

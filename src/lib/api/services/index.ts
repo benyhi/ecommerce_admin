@@ -11,7 +11,9 @@ export {
   customersAdmin,
   configAdmin,
   metricsAdmin,
+  couponsAdmin,
 } from "./admin.service";
+export { couponsPublic } from "./coupons.service";
 
 // Types re-exported for convenience
 export type { AdminService, AdminResourceName } from "./admin.service";

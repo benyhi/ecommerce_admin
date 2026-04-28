@@ -92,6 +92,9 @@ export const configAdmin = createAdminService<Record<string, unknown>>(
 export const metricsAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/metrics",
 );
+export const couponsAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/coupons",
+);
 
 // ── Resource name → service mapping ─────────────────────
 
@@ -104,7 +107,8 @@ export type AdminResourceName =
   | "clientes"
   | "configuracion"
   | "sitio-publicaciones"
-  | "sitio-carrusel";
+  | "sitio-carrusel"
+  | "cupones";
 
 const adminServiceMap: Record<AdminResourceName, AdminService<Record<string, unknown>>> = {
   metricas: metricsAdmin,
@@ -116,6 +120,7 @@ const adminServiceMap: Record<AdminResourceName, AdminService<Record<string, unk
   configuracion: configAdmin,
   "sitio-publicaciones": postsAdmin,
   "sitio-carrusel": bannersAdmin,
+  cupones: couponsAdmin,
 };
 
 /**

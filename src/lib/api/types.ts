@@ -306,6 +306,47 @@ export type OrderWrite = {
   }[];
 };
 
+// ── Coupons ─────────────────────────────────────────────
+
+export type CouponDiscountType = "percentage" | "fixed";
+
+export type Coupon = {
+  id: string;
+  code: string;
+  description: string;
+  discount_type: CouponDiscountType;
+  discount_type_display: string;
+  value: string;
+  min_order_amount: string;
+  max_uses: number | null;
+  used_count: number;
+  is_active: boolean;
+  is_valid: boolean;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CouponWrite = {
+  code: string;
+  description?: string;
+  discount_type: CouponDiscountType;
+  value: string;
+  min_order_amount?: string;
+  max_uses?: number | null;
+  is_active?: boolean;
+  expires_at?: string | null;
+};
+
+export type CouponValidationResult = {
+  valid: boolean;
+  code: string;
+  discount_type?: CouponDiscountType;
+  value?: string;
+  discount_amount?: string;
+  message: string;
+};
+
 // ── Query params ────────────────────────────────────────
 
 export type QueryParams = {
