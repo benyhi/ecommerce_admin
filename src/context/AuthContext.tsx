@@ -32,7 +32,8 @@ export type ResourceName =
   | "sitio-carrusel"
   | "sitio-destacados"
   | "sitio"
-  | "cupones";
+  | "cupones"
+  | "envios";
 
 type UserInfo = {
   id: string;

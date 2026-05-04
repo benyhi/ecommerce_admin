@@ -55,6 +55,18 @@ const paymentStatusOptions = [
   { value: "refunded", label: "Reembolsado" },
 ];
 
+const deliveryTypeOptions = [
+  { value: "shipping", label: "Envío a domicilio" },
+  { value: "pickup", label: "Retiro en local" },
+];
+
+const shipmentStatusOptions = [
+  { value: "pending", label: "Pendiente" },
+  { value: "in_transit", label: "En tránsito" },
+  { value: "delivered", label: "Entregado" },
+  { value: "returned", label: "Devuelto" },
+];
+
 const roleOptions: { value: Role; label: string }[] = [
   { value: "admin", label: "Admin" },
   { value: "employee", label: "Empleado" },
@@ -126,6 +138,7 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "status", label: "Estado", type: "select", options: orderStatusOptions },
       { key: "payment_method", label: "Método de pago", type: "select", options: paymentMethodOptions },
       { key: "payment_status", label: "Estado de pago", type: "select", options: paymentStatusOptions },
+      { key: "delivery_type", label: "Tipo de entrega", type: "select", options: deliveryTypeOptions },
       { key: "discount", label: "Descuento", type: "number" },
       { key: "notes", label: "Notas", type: "textarea" },
     ],
@@ -134,6 +147,7 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "customer_name", label: "Cliente" },
       { key: "total", label: "Total" },
       { key: "status", label: "Estado" },
+      { key: "delivery_type", label: "Entrega" },
       { key: "payment_status", label: "Pago" },
       { key: "created_at", label: "Fecha" },
     ],
@@ -291,10 +305,38 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "expires_at", label: "Vence" },
     ],
     filterOptions: {
-      status: [
+      is_active: [
         { value: "true", label: "Activos" },
         { value: "false", label: "Inactivos" },
       ],
     },
+  },
+  envios: {
+    name: "Envíos",
+    resource: "envios",
+    description: "Envíos a domicilio asociados a pedidos.",
+    fields: [
+      { key: "order", label: "ID del pedido", type: "text", required: true, placeholder: "UUID del pedido" },
+      { key: "status", label: "Estado", type: "select", options: shipmentStatusOptions },
+      { key: "tracking_number", label: "Número de seguimiento", type: "text", placeholder: "Ej: OCA-0001234" },
+      { key: "carrier", label: "Transportista", type: "text", placeholder: "Ej: OCA, Andreani, Correo Argentino" },
+      { key: "street_address", label: "Dirección", type: "text" },
+      { key: "city", label: "Ciudad", type: "text" },
+      { key: "province", label: "Provincia", type: "text" },
+      { key: "postal_code", label: "Código postal", type: "text" },
+      { key: "estimated_delivery", label: "Entrega estimada (YYYY-MM-DD)", type: "text", placeholder: "2026-05-10" },
+      { key: "notes", label: "Notas", type: "textarea" },
+    ],
+    tableColumns: [
+      { key: "order_number", label: "Pedido" },
+      { key: "customer_name", label: "Cliente" },
+      { key: "status", label: "Estado" },
+      { key: "carrier", label: "Transportista" },
+      { key: "tracking_number", label: "Seguimiento" },
+      { key: "city", label: "Ciudad" },
+      { key: "estimated_delivery", label: "Entrega est." },
+      { key: "created_at", label: "Fecha" },
+    ],
+    filterOptions: { status: shipmentStatusOptions },
   },
 };

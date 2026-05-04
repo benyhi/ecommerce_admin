@@ -260,6 +260,7 @@ export type OrderStatus =
 
 export type OrderPaymentMethod = "cash" | "transfer" | "card" | "mercadopago";
 export type OrderPaymentStatus = "pending" | "paid" | "failed" | "refunded";
+export type OrderDeliveryType = "shipping" | "pickup";
 
 export type OrderItem = {
   id: string;
@@ -283,6 +284,7 @@ export type Order = {
   subtotal: string;
   discount: string;
   total: string;
+  delivery_type: OrderDeliveryType;
   item_count?: number;
   items?: OrderItem[];
   created_at: string;
@@ -296,6 +298,7 @@ export type OrderWrite = {
   status?: OrderStatus;
   payment_method?: OrderPaymentMethod;
   payment_status?: OrderPaymentStatus;
+  delivery_type?: OrderDeliveryType;
   notes?: string;
   discount?: string;
   items?: {
@@ -304,6 +307,41 @@ export type OrderWrite = {
     quantity: number;
     unit_price: string;
   }[];
+};
+
+// ── Shipping ────────────────────────────────────────────
+
+export type ShipmentStatus = "pending" | "in_transit" | "delivered" | "returned";
+
+export type Shipment = {
+  id: string;
+  order: string;
+  order_number: string;
+  customer_name: string;
+  status: ShipmentStatus;
+  tracking_number: string;
+  carrier: string;
+  street_address: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  estimated_delivery: string | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ShipmentWrite = {
+  order: string;
+  status?: ShipmentStatus;
+  tracking_number?: string;
+  carrier?: string;
+  street_address?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  estimated_delivery?: string | null;
+  notes?: string;
 };
 
 // ── Coupons ─────────────────────────────────────────────

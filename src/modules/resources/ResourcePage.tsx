@@ -82,6 +82,7 @@ type ResourcePageProps = {
 export function ResourcePage({ resource }: ResourcePageProps) {
   const config = resourceConfigs[resource];
   const { can } = useAuth();
+  const filterKey = config.filterOptions ? Object.keys(config.filterOptions)[0] : "status";
   const {
     rows,
     total,
@@ -98,7 +99,7 @@ export function ResourcePage({ resource }: ResourcePageProps) {
     createItem,
     updateItem,
     deleteItem,
-  } = useCrudResource<ResourceItem>(resource, { pageSize: 8, defaultFilters: { status: null } });
+  } = useCrudResource<ResourceItem>(resource, { pageSize: 8, defaultFilters: { [filterKey]: null } });
 
   const handleDelete = (item: ResourceItem) => {
     modals.openConfirmModal({
@@ -170,8 +171,8 @@ export function ResourcePage({ resource }: ResourcePageProps) {
   };
 
   const statusFilterOptions = useMemo(
-    () => config.filterOptions?.status ?? [],
-    [config.filterOptions?.status]
+    () => (config.filterOptions ? Object.values(config.filterOptions)[0] : []) ?? [],
+    [config.filterOptions]
   );
 
   const canCreate = can("create", resource);
@@ -199,9 +200,9 @@ export function ResourcePage({ resource }: ResourcePageProps) {
               w={180}
               placeholder="Estado"
               data={statusFilterOptions}
-              value={filters.status ?? null}
+              value={(filters[filterKey] ?? null) as string | null}
               clearable
-              onChange={(value) => setFilter("status", value)}
+              onChange={(value) => setFilter(filterKey, value)}
             />
             {canCreate && (
               <Button
