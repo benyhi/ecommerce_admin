@@ -9,6 +9,7 @@ export type ResourceField = {
   placeholder?: string;
   required?: boolean;
   options?: { value: string; label: string }[];
+  optionSource?: "categorias";
 };
 
 export type TableColumn = {
@@ -22,7 +23,7 @@ export type ResourceConfig = {
   description: string;
   fields: ResourceField[];
   tableColumns: TableColumn[];
-  filterOptions?: { status?: { value: string; label: string }[] };
+  filterOptions?: Record<string, { value: string; label: string }[]>;
 };
 
 const statusOptions = [
@@ -109,6 +110,23 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
       { key: "active", label: "Estado" },
     ],
   },
+  subcategorias: {
+    name: "Subcategorias",
+    resource: "subcategorias",
+    description: "Organiza los productos dentro de cada categoría.",
+    fields: [
+      { key: "category", label: "Categoria", type: "select", required: true, optionSource: "categorias" },
+      { key: "name", label: "Nombre", type: "text", required: true },
+      { key: "order", label: "Orden", type: "number" },
+      { key: "active", label: "Activo", type: "switch" },
+    ],
+    tableColumns: [
+      { key: "name", label: "Nombre" },
+      { key: "category_detail.name", label: "Categoría" },
+      { key: "order", label: "Orden" },
+      { key: "active", label: "Estado" },
+    ],
+  },
   productos: {
     name: "Productos",
     resource: "productos",
@@ -121,7 +139,8 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
     ],
     tableColumns: [
       { key: "name", label: "Producto" },
-      { key: "category.name", label: "Categoría" },
+      { key: "category_detail.name", label: "Categoría" },
+      { key: "subcategory_detail.name", label: "Subcategoría" },
       { key: "price", label: "Precio" },
       { key: "active", label: "Estado" },
       { key: "order", label: "Orden" },
@@ -175,19 +194,17 @@ export const resourceConfigs: Record<ResourceName, ResourceConfig> = {
   clientes: {
     name: "Clientes",
     resource: "clientes",
-    description: "Clientes con segmento y estado.",
+    description: "Clientes registrados desde la tienda.",
     fields: [
-      { key: "name", label: "Nombre", type: "text", required: true },
-      { key: "email", label: "Email", type: "text" },
-      { key: "segment", label: "Segmento", type: "text", placeholder: "B2B / B2C" },
+      { key: "first_name", label: "Nombre", type: "text" },
+      { key: "last_name", label: "Apellido", type: "text" },
+      { key: "email", label: "Email", type: "text", required: true },
       { key: "status", label: "Estado", type: "select", options: statusOptions },
     ],
     tableColumns: [
       { key: "name", label: "Nombre" },
       { key: "email", label: "Email" },
-      { key: "segment", label: "Segmento" },
       { key: "status", label: "Estado" },
-      { key: "updatedAt", label: "Actualizado" },
     ],
     filterOptions: { status: statusOptions },
   },

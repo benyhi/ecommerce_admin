@@ -167,7 +167,11 @@ function FeaturedProductsManager() {
                   )}
                 </Table.Td>
                 <Table.Td fw={500}>{item.product_detail?.name ?? item.product}</Table.Td>
-                <Table.Td>{item.product_detail?.category?.name ?? "-"}</Table.Td>
+                <Table.Td>
+                  {item.product_detail?.subcategory_detail
+                    ? `${item.product_detail.category_detail?.name ?? "-"} / ${item.product_detail.subcategory_detail.name}`
+                    : item.product_detail?.category_detail?.name ?? "-"}
+                </Table.Td>
                 <Table.Td>
                   {item.product_detail
                     ? Number(item.product_detail.price).toLocaleString("es-AR", {
@@ -269,7 +273,7 @@ function ProductPickerModal({ opened, onClose, excludeIds, onAdd }: ProductPicke
 
   const productOptions = products.map((p) => ({
     value: p.id,
-    label: `${p.name}${(p as unknown as Record<string, unknown>).category_detail ? ` — ${((p as unknown as Record<string, unknown>).category_detail as Record<string, unknown>)?.name}` : ""}`,
+    label: `${p.name}${(p as unknown as Record<string, unknown>).category_detail ? ` — ${((p as unknown as Record<string, unknown>).category_detail as Record<string, unknown>)?.name}` : ""}${(p as unknown as Record<string, unknown>).subcategory_detail ? ` / ${((p as unknown as Record<string, unknown>).subcategory_detail as Record<string, unknown>)?.name}` : ""}`,
   }));
 
   const handleAdd = async () => {

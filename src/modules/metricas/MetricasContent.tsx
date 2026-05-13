@@ -5,6 +5,7 @@ import { Card, Group, SimpleGrid, Stack, Table, Text, Title } from "@mantine/cor
 import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import { ResourcePage } from "@/modules/resources/ResourcePage";
+import { FeatureGate } from "@/components/FeatureGate";
 
 const topProducts = [
   { name: "Auriculares ANC", sku: "ANC-9823", ventas: 420, ingreso: 54420 },
@@ -15,6 +16,7 @@ const topProducts = [
 
 export function MetricasContent() {
   return (
+    <FeatureGate featureKey="analytics" featureName="Métricas y Analítica">
     <Stack gap="lg">
       <Title order={2}>Metricas</Title>
 
@@ -73,5 +75,6 @@ export function MetricasContent() {
         <ResourcePage resource="metricas" />
       </Card>
     </Stack>
+    </FeatureGate>
   );
 }

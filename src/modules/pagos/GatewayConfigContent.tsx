@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  Badge, Button, Card, Group, Modal, Stack, Switch, Text,
-  TextInput, Title, Loader, Center, SimpleGrid, Textarea, Collapse, Anchor,
+  Badge, Button, Card, Group, Modal, Overlay, SimpleGrid, Stack,
+  Switch, Text, TextInput, ThemeIcon, Title, Loader, Center,
 } from "@mantine/core";
-import { IconSettings, IconPlus, IconCheck } from "@tabler/icons-react";
+import { IconSettings, IconPlus, IconCheck, IconLock } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { useAuth } from "@/context/AuthContext";
 import { gatewayConfigsAdmin } from "@/lib/api/services/payments.service";
 import type { GatewayConfig, PaymentGateway } from "@/lib/api/types";
 
@@ -64,6 +65,9 @@ const GATEWAY_META: Record<PaymentGateway, GatewayMeta> = {
 const ALL_GATEWAYS: PaymentGateway[] = ["mercadopago", "naranja_x", "card", "debit", "transfer"];
 
 export default function GatewayConfigContent() {
+  const { hasFeature } = useAuth();
+  const hasMercadoPago = hasFeature("mercadopago");
+
   const [configs, setConfigs] = useState<GatewayConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [editConfig, setEditConfig] = useState<GatewayConfig | null>(null);
@@ -139,9 +143,30 @@ export default function GatewayConfigContent() {
           const meta = GATEWAY_META[gw];
           const existing = configsByGateway[gw];
           const enabled = existing?.is_enabled ?? false;
+          const locked = gw === "mercadopago" && !hasMercadoPago;
 
           return (
-            <Card key={gw} withBorder radius="md" padding="lg">
+            <Card
+              key={gw}
+              withBorder
+              radius="md"
+              padding="lg"
+              style={{ position: "relative", opacity: locked ? 0.75 : 1 }}
+            >
+              {locked && (
+                <Overlay
+                  color="var(--mantine-color-body)"
+                  backgroundOpacity={0.5}
+                  radius="md"
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8 }}
+                >
+                  <ThemeIcon size={36} radius="xl" color="gray" variant="light">
+                    <IconLock size={20} />
+                  </ThemeIcon>
+                  <Text size="xs" c="dimmed" fw={500}>Requiere plan Business</Text>
+                </Overlay>
+              )}
+
               <Group justify="space-between" mb="xs" align="flex-start">
                 <div>
                   <Text fw={700}>{meta.label}</Text>
@@ -153,6 +178,7 @@ export default function GatewayConfigContent() {
                     onChange={(e) => toggleEnabled(existing.id, e.currentTarget.checked)}
                     label={enabled ? "Activa" : "Inactiva"}
                     color="green"
+                    disabled={locked}
                   />
                 ) : (
                   <Badge color="gray" variant="outline">No configurada</Badge>
@@ -170,7 +196,8 @@ export default function GatewayConfigContent() {
                 variant="light"
                 size="xs"
                 fullWidth
-                onClick={() => openEdit(gw)}
+                onClick={() => !locked && openEdit(gw)}
+                disabled={locked}
               >
                 {existing ? "Editar configuración" : "Configurar"}
               </Button>

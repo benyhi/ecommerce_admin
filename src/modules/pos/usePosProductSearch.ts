@@ -3,7 +3,7 @@
 import { useDebouncedValue } from "@mantine/hooks";
 import { useCallback, useEffect, useState } from "react";
 
-import { catalogService } from "@/lib/api/services/catalog.service";
+import { httpClient } from "@/lib/api/httpClient";
 import type { Product } from "@/lib/api/types";
 import type { PosProduct } from "./types";
 
@@ -18,20 +18,19 @@ export function usePosProductSearch() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!debounced.trim()) {
-      setResults([]);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
 
-    catalogService
-      .getProducts({ search: debounced })
+    const params: Record<string, string | number> = { page_size: 20 };
+    if (debounced.trim()) params.search = debounced.trim();
+
+    httpClient
+      .get<Product[] | { results: Product[] }>("/api/admin/catalog/products/", params)
       .then((res) => {
         if (cancelled) return;
+        const products = Array.isArray(res) ? res : res.results ?? [];
         setResults(
-          res.results
+          products
             .filter((p) => p.active)
             .map(mapToProduct),
         );

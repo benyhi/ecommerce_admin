@@ -43,7 +43,7 @@ import {
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { httpClient } from "@/lib/api/httpClient";
-import type { Category, ProductAttribute, ProductBadge } from "@/lib/api/types";
+import type { Category, Subcategory, ProductAttribute, ProductBadge } from "@/lib/api/types";
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -56,6 +56,7 @@ type ProductRow = {
   order: number;
   image_url: string | null;
   category_detail?: { id: string; name: string; order: number } | null;
+  subcategory_detail?: { id: string; name: string; order: number; category?: { id: string; name: string; order: number } } | null;
 };
 
 // ─── Icon helpers ─────────────────────────────────────────────────────────────
@@ -187,13 +188,19 @@ function ProductPagePreview({ name, description, price, imageUrl, categoryName, 
 
 interface Step0Props {
   categories: Category[];
+  subcategories: Subcategory[];
   name: string;       setName: (v: string) => void;
   description: string; setDescription: (v: string) => void;
   price: number;      setPrice: (v: number) => void;
   categoryId: string | null; setCategoryId: (v: string | null) => void;
+  subcategoryId: string | null; setSubcategoryId: (v: string | null) => void;
 }
 
-function Step0Info({ categories, name, setName, description, setDescription, price, setPrice, categoryId, setCategoryId }: Step0Props) {
+function Step0Info({ categories, subcategories, name, setName, description, setDescription, price, setPrice, categoryId, setCategoryId, subcategoryId, setSubcategoryId }: Step0Props) {
+  const subcategoryOptions = subcategories
+    .filter((s) => !categoryId || (typeof s.category === "string" ? s.category : s.category.id) === categoryId)
+    .map((s) => ({ value: s.id as unknown as string, label: s.name }));
+
   return (
     <Stack gap="lg">
       <Box>
@@ -234,10 +241,34 @@ function Step0Info({ categories, name, setName, description, setDescription, pri
           <Select
             data={categories.map((c) => ({ value: c.id as unknown as string, label: c.name }))}
             value={categoryId}
-            onChange={setCategoryId}
+            onChange={(value) => {
+              setCategoryId(value);
+              if (!value) {
+                setSubcategoryId(null);
+                return;
+              }
+              const selected = subcategories.find((s) => s.id === subcategoryId);
+              const selectedCategory = selected
+                ? typeof selected.category === "string" ? selected.category : selected.category.id
+                : null;
+              if (selectedCategory !== value) setSubcategoryId(null);
+            }}
             clearable
             searchable
             placeholder="Sin categoría"
+            size="md"
+          />
+        </Grid.Col>
+        <Grid.Col span={6}>
+          <Text size="sm" fw={600} mb={4}>Subcategoría</Text>
+          <Select
+            data={subcategoryOptions}
+            value={subcategoryId}
+            onChange={setSubcategoryId}
+            clearable
+            searchable
+            disabled={!categoryId}
+            placeholder={categoryId ? "Sin subcategoría" : "Seleccioná una categoría"}
             size="md"
           />
         </Grid.Col>
@@ -476,6 +507,7 @@ export function ProductDetailWizard({ productId }: { productId: string }) {
   const [step, setStep] = useState(0);
   const [product, setProduct] = useState<ProductRow | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -484,6 +516,7 @@ export function ProductDetailWizard({ productId }: { productId: string }) {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
 
   // Step 1
   const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
@@ -494,20 +527,23 @@ export function ProductDetailWizard({ productId }: { productId: string }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [prod, attrsRes, badgesRes, catsRes] = await Promise.all([
+      const [prod, attrsRes, badgesRes, catsRes, subcatsRes] = await Promise.all([
         httpClient.get<ProductRow>(`/api/admin/catalog/products/${productId}/`),
         httpClient.get<ProductAttribute[] | { results: ProductAttribute[] }>(`/api/admin/catalog/attributes/`, { product: productId }),
         httpClient.get<ProductBadge[] | { results: ProductBadge[] }>(`/api/admin/catalog/badges/`),
         httpClient.get<Category[] | { results: Category[] }>(`/api/admin/catalog/categories/`),
+        httpClient.get<Subcategory[] | { results: Subcategory[] }>(`/api/admin/catalog/subcategories/`),
       ]);
       setProduct(prod);
       setName(prod.name);
       setDescription(prod.description ?? "");
       setPrice(Number(prod.price));
       setCategoryId(prod.category_detail?.id ?? null);
+      setSubcategoryId(prod.subcategory_detail?.id ?? null);
       setAttributes(Array.isArray(attrsRes) ? attrsRes : attrsRes.results ?? []);
       setBadges(Array.isArray(badgesRes) ? badgesRes : badgesRes.results ?? []);
       setCategories(Array.isArray(catsRes) ? catsRes : catsRes.results ?? []);
+      setSubcategories(Array.isArray(subcatsRes) ? subcatsRes : subcatsRes.results ?? []);
     } catch {
       notifications.show({ color: "red", title: "Error", message: "No se pudo cargar el producto." });
     } finally {
@@ -525,7 +561,7 @@ export function ProductDetailWizard({ productId }: { productId: string }) {
     try {
       if (step === 0) {
         const updated = await httpClient.put<ProductRow>(`/api/admin/catalog/products/${product.id}/`, {
-          name, description, price, category: categoryId,
+          name, description, price, category: categoryId, subcategory: subcategoryId,
           active: product.active, order: product.order,
         });
         setProduct((prev) => prev ? { ...prev, name: updated.name, description: updated.description, price: updated.price } : prev);
@@ -598,10 +634,12 @@ export function ProductDetailWizard({ productId }: { productId: string }) {
               {step === 0 && (
                 <Step0Info
                   categories={categories}
+                  subcategories={subcategories}
                   name={name}           setName={setName}
                   description={description} setDescription={setDescription}
                   price={price}         setPrice={setPrice}
                   categoryId={categoryId}   setCategoryId={setCategoryId}
+                  subcategoryId={subcategoryId} setSubcategoryId={setSubcategoryId}
                 />
               )}
               {step === 1 && (

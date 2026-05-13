@@ -11,7 +11,7 @@ import React, {
 
 import { authService } from "@/lib/api/services/auth.service";
 import { tokenManager } from "@/lib/api/tokenManager";
-import type { ApiError } from "@/lib/api/types";
+import type { ApiError, LicenseInfo } from "@/lib/api/types";
 import type { UserRole } from "@/lib/api/types";
 
 // ── Public types ────────────────────────────────────────
@@ -22,6 +22,7 @@ export type PermissionAction = "read" | "create" | "update" | "delete";
 export type ResourceName =
   | "metricas"
   | "categorias"
+  | "subcategorias"
   | "productos"
   | "pedidos"
   | "usuarios"
@@ -40,6 +41,7 @@ type UserInfo = {
   email: string;
   role: Role;
   tenant: { id: string; slug: string; name: string };
+  license: LicenseInfo | null;
 };
 
 type AuthState = {
@@ -52,6 +54,8 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   loading: boolean;
   can: (action: PermissionAction, resource: ResourceName) => boolean;
+  hasFeature: (featureKey: string) => boolean;
+  license: LicenseInfo | null;
   login: (email: string, password: string, tenant: string) => Promise<void>;
   logout: () => void;
 };
@@ -94,6 +98,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [state.user?.role],
   );
 
+  const hasFeature = useCallback(
+    (featureKey: string): boolean => {
+      const features = state.user?.license?.features;
+      if (!features) return true;
+      return features[featureKey]?.enabled !== false;
+    },
+    [state.user?.license],
+  );
+
   const login = useCallback(
     async (email: string, password: string, tenant: string) => {
       const response = await authService.login({ email, password, tenant });
@@ -113,10 +126,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       isAuthenticated: Boolean(state.user),
       loading: state.loading,
       can,
+      hasFeature,
+      license: state.user?.license ?? null,
       login,
       logout,
     }),
-    [state.user, state.loading, can, login, logout],
+    [state.user, state.loading, can, hasFeature, login, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -52,6 +52,10 @@ export const categoriesAdmin = createAdminService<Record<string, unknown>>(
 export const productsAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/catalog/products",
 );
+
+export const subcategoriesAdmin = createAdminService<Record<string, unknown>>(
+  "/api/admin/catalog/subcategories",
+);
 export const optionGroupsAdmin = createAdminService<Record<string, unknown>>(
   "/api/admin/catalog/option-groups",
 );
@@ -104,6 +108,7 @@ export const shipmentsAdmin = createAdminService<Record<string, unknown>>(
 export type AdminResourceName =
   | "metricas"
   | "categorias"
+  | "subcategorias"
   | "productos"
   | "pedidos"
   | "usuarios"
@@ -117,6 +122,7 @@ export type AdminResourceName =
 const adminServiceMap: Record<AdminResourceName, AdminService<Record<string, unknown>>> = {
   metricas: metricsAdmin,
   categorias: categoriesAdmin,
+  subcategorias: subcategoriesAdmin,
   productos: productsAdmin,
   pedidos: ordersAdmin,
   usuarios: usersAdmin,

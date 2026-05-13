@@ -34,14 +34,37 @@ export type Tenant = {
   name: string;
 };
 
+// ── License / Plans ─────────────────────────────────────
+
+export type LicenseFeature = {
+  enabled: boolean;
+  limit: number | null;
+};
+
+export type LicensePlan = {
+  name: string;
+  slug: string;
+  max_products: number;
+  max_orders_month: number;
+};
+
+export type LicenseInfo = {
+  status: "active" | "expired" | "suspended";
+  is_active: boolean;
+  plan: LicensePlan;
+  features: Record<string, LicenseFeature>;
+  valid_to: string | null;
+};
+
 export type UserInfo = {
   id: string;
   email: string;
   role: UserRole;
   tenant: Tenant;
+  license: LicenseInfo | null;
 };
 
-export type UserRole = "admin" | "employee" | "editor" | "read";
+export type UserRole = "admin" | "employee" | "editor" | "read" | "customer";
 
 export type LoginRequest = {
   email: string;
@@ -87,6 +110,17 @@ export type Category = {
   active: boolean;
   order: number;
   products?: ProductSummary[];
+  subcategories?: Subcategory[];
+};
+
+export type Subcategory = {
+  id: string;
+  category: string | CategorySummary;
+  category_detail?: CategorySummary;
+  name: string;
+  active: boolean;
+  order: number;
+  products?: ProductSummary[];
 };
 
 export type ProductSummary = {
@@ -98,6 +132,10 @@ export type ProductSummary = {
   order: number;
   image_filename: string | null;
   image_url: string | null;
+  category?: string | null;
+  category_detail?: CategorySummary | null;
+  subcategory?: string | null;
+  subcategory_detail?: SubcategorySummary | null;
 };
 
 export type Product = {
@@ -109,7 +147,10 @@ export type Product = {
   order: number;
   image_filename: string | null;
   image_url: string | null;
-  category: CategorySummary | null;
+  category: string | CategorySummary | null;
+  category_detail?: CategorySummary | null;
+  subcategory: string | SubcategorySummary | null;
+  subcategory_detail?: SubcategorySummary | null;
   option_groups: OptionGroup[];
 };
 
@@ -117,6 +158,13 @@ export type CategorySummary = {
   id: string;
   name: string;
   order: number;
+};
+
+export type SubcategorySummary = {
+  id: string;
+  name: string;
+  order: number;
+  category: CategorySummary;
 };
 
 export type OptionGroup = {
@@ -383,6 +431,45 @@ export type CouponValidationResult = {
   value?: string;
   discount_amount?: string;
   message: string;
+};
+
+// ── Notifications ────────────────────────────────────────
+
+export type NotificationType =
+  | "new_order"
+  | "order_confirmed"
+  | "order_processing"
+  | "order_shipped"
+  | "order_delivered"
+  | "order_cancelled"
+  | "payment_received"
+  | "payment_failed"
+  | "low_stock"
+  | "shipment_update"
+  | "new_user";
+
+export type Notification = {
+  id: string;
+  type: NotificationType;
+  type_display: string;
+  title: string;
+  body: string;
+  is_read: boolean;
+  data: Record<string, unknown>;
+  email_sent: boolean;
+  created_at: string;
+};
+
+export type NotificationConfig = {
+  notification_email: string;
+  email_notifications_enabled: boolean;
+  low_stock_threshold: number;
+  notify_new_order: boolean;
+  notify_order_status: boolean;
+  notify_payment: boolean;
+  notify_low_stock: boolean;
+  notify_shipment: boolean;
+  notify_new_user: boolean;
 };
 
 // ── Query params ────────────────────────────────────────

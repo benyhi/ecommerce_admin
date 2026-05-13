@@ -9,6 +9,7 @@ import {
   Button,
   Drawer,
   Group,
+  Image,
   LoadingOverlay,
   Modal,
   NumberInput,
@@ -22,6 +23,7 @@ import {
   TextInput,
   Title,
   Divider,
+  NativeSelect,
 } from "@mantine/core";
 import {
   IconEdit,
@@ -38,11 +40,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { httpClient } from "@/lib/api/httpClient";
 import { ImagePickerField } from "@/components/common/ImagePickerModal";
-import type { Product, Category, OptionGroup, Option } from "@/lib/api/types";
+import type { Product, Category, Subcategory, OptionGroup, Option } from "@/lib/api/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ProductRow = Product & { category_detail?: { id: string; name: string; order: number } | null };
+type ProductRow = Product & {
+  category_detail?: { id: string; name: string; order: number } | null;
+  subcategory_detail?: { id: string; name: string; order: number; category?: { id: string; name: string; order: number } } | null;
+};
 
 // ─── ProductsPage ─────────────────────────────────────────────────────────────
 
@@ -54,13 +59,14 @@ export function ProductsPage() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
 
   // Categories for select
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -75,11 +81,13 @@ export function ProductsPage() {
 
   // Load categories once
   useEffect(() => {
-    httpClient
-      .get<{ results: Category[] } | Category[]>("/api/admin/catalog/categories/")
-      .then((res) => {
-        const list = Array.isArray(res) ? res : res.results ?? [];
-        setCategories(list);
+    Promise.all([
+      httpClient.get<{ results: Category[] } | Category[]>("/api/admin/catalog/categories/"),
+      httpClient.get<{ results: Subcategory[] } | Subcategory[]>("/api/admin/catalog/subcategories/"),
+    ])
+      .then(([catsRes, subcatsRes]) => {
+        setCategories(Array.isArray(catsRes) ? catsRes : catsRes.results ?? []);
+        setSubcategories(Array.isArray(subcatsRes) ? subcatsRes : subcatsRes.results ?? []);
       })
       .catch(() => {});
   }, []);
@@ -87,7 +95,7 @@ export function ProductsPage() {
   const loadProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, string | number> = { page };
+      const params: Record<string, string | number> = { page, page_size: pageSize };
       if (debouncedSearch) params.search = debouncedSearch;
       const res = await httpClient.get<{ count: number; results: ProductRow[] } | ProductRow[]>(
         "/api/admin/catalog/products/",
@@ -105,7 +113,7 @@ export function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, pageSize, debouncedSearch]);
 
   useEffect(() => {
     loadProducts();
@@ -158,19 +166,29 @@ export function ProductsPage() {
           )}
         </Group>
 
-        <TextInput
-          leftSection={<IconSearch size={16} />}
-          placeholder="Buscar productos..."
-          value={search}
-          onChange={(e) => { setSearch(e.currentTarget.value); setPage(1); }}
-          w={320}
-        />
+        <Group>
+          <TextInput
+            leftSection={<IconSearch size={16} />}
+            placeholder="Buscar productos..."
+            value={search}
+            onChange={(e) => { setSearch(e.currentTarget.value); setPage(1); }}
+            w={320}
+          />
+          <NativeSelect
+            value={String(pageSize)}
+            onChange={(e) => { setPageSize(Number(e.currentTarget.value)); setPage(1); }}
+            data={["5", "10", "15", "20", "25"]}
+            w={80}
+          />
+        </Group>
 
         <Table striped highlightOnHover withTableBorder withColumnBorders>
           <Table.Thead>
             <Table.Tr>
               <Table.Th>Producto</Table.Th>
               <Table.Th>Categoría</Table.Th>
+              <Table.Th>Subcategoría</Table.Th>
+              <Table.Th>Imagen</Table.Th>
               <Table.Th>Precio</Table.Th>
               <Table.Th>Estado</Table.Th>
               <Table.Th>Orden</Table.Th>
@@ -182,6 +200,14 @@ export function ProductsPage() {
               <Table.Tr key={p.id}>
                 <Table.Td fw={500}>{p.name}</Table.Td>
                 <Table.Td>{p.category_detail?.name ?? "-"}</Table.Td>
+                <Table.Td>{p.subcategory_detail?.name ?? "-"}</Table.Td>
+                <Table.Td>
+                  {p.image_url ? (
+                    <Image src={p.image_url} alt={p.name} w={60} h={60} fit="cover" radius="sm" />
+                  ) : (
+                    <Text c="dimmed" size="sm">Sin imagen</Text>
+                  )}
+                </Table.Td>
                 <Table.Td>
                   {Number(p.price).toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 })}
                 </Table.Td>
@@ -233,7 +259,7 @@ export function ProductsPage() {
             ))}
             {!products.length && !loading && (
               <Table.Tr>
-                <Table.Td colSpan={6}>
+                <Table.Td colSpan={8}>
                   <Text c="dimmed" size="sm">Sin productos aún.</Text>
                 </Table.Td>
               </Table.Tr>
@@ -253,6 +279,7 @@ export function ProductsPage() {
         onClose={() => setDrawerOpen(false)}
         product={editProduct}
         categories={categories}
+        subcategories={subcategories}
         onSaved={() => { setDrawerOpen(false); loadProducts(); }}
       />
 
@@ -275,15 +302,17 @@ type ProductDrawerProps = {
   onClose: () => void;
   product: ProductRow | null;
   categories: Category[];
+  subcategories: Subcategory[];
   onSaved: () => void;
 };
 
-function ProductDrawer({ opened, onClose, product, categories, onSaved }: ProductDrawerProps) {
+function ProductDrawer({ opened, onClose, product, categories, subcategories, onSaved }: ProductDrawerProps) {
   const isEdit = Boolean(product);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number>(0);
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
   const [active, setActive] = useState(true);
   const [order, setOrder] = useState(0);
   const [imageFilename, setImageFilename] = useState<string | null>(null);
@@ -299,6 +328,9 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
       setPrice(Number(product?.price ?? 0));
       setCategoryId(
         product?.category_detail?.id ?? (product?.category as unknown as string) ?? null
+      );
+      setSubcategoryId(
+        product?.subcategory_detail?.id ?? (product?.subcategory as unknown as string) ?? null
       );
       setActive(product?.active ?? true);
       setOrder(product?.order ?? 0);
@@ -321,7 +353,7 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const payload = { name, description, price, category: categoryId, active, order, image_filename: imageFilename };
+      const payload = { name, description, price, category: categoryId, subcategory: subcategoryId, active, order, image_filename: imageFilename };
       if (isEdit && product) {
         await httpClient.put(`/api/admin/catalog/products/${product.id}/`, payload);
         notifications.show({ color: "blue", title: "Actualizado", message: "Producto guardado." });
@@ -338,6 +370,9 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
   };
 
   const categoryOptions = categories.map((c) => ({ value: c.id as unknown as string, label: c.name }));
+  const subcategoryOptions = subcategories
+    .filter((s) => !categoryId || (typeof s.category === "string" ? s.category : s.category.id) === categoryId)
+    .map((s) => ({ value: s.id as unknown as string, label: s.name }));
 
   return (
     <Drawer
@@ -376,10 +411,31 @@ function ProductDrawer({ opened, onClose, product, categories, onSaved }: Produc
             label="Categoría"
             data={categoryOptions}
             value={categoryId}
-            onChange={setCategoryId}
+            onChange={(value) => {
+              setCategoryId(value);
+              if (!value) {
+                setSubcategoryId(null);
+                return;
+              }
+              const selected = subcategories.find((s) => s.id === subcategoryId);
+              const selectedCategory = selected
+                ? typeof selected.category === "string" ? selected.category : selected.category.id
+                : null;
+              if (selectedCategory !== value) setSubcategoryId(null);
+            }}
             clearable
             searchable
             placeholder="Sin categoría"
+          />
+          <Select
+            label="Subcategoría"
+            data={subcategoryOptions}
+            value={subcategoryId}
+            onChange={setSubcategoryId}
+            clearable
+            searchable
+            disabled={!categoryId}
+            placeholder={categoryId ? "Sin subcategoría" : "Seleccioná una categoría"}
           />
           <NumberInput
             label="Orden"

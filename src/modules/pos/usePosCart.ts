@@ -131,7 +131,7 @@ export function usePosCart() {
       provider: provider.name,
     };
     setPaymentResult(result);
-    finishSale(result);
+    void finishSale(result);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, transferRef]);
 
@@ -146,7 +146,7 @@ export function usePosCart() {
         provider: "Efectivo",
       };
       setPaymentResult(result);
-      finishSale(result);
+      void finishSale(result);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [total],
@@ -167,7 +167,7 @@ export function usePosCart() {
         provider: provider.name,
       };
       setPaymentResult(result);
-      if (res.success) finishSale(result);
+      if (res.success) void finishSale(result);
     } catch {
       // cancelled — do nothing
     } finally {
@@ -192,23 +192,35 @@ export function usePosCart() {
       provider: "Manual",
     };
     setPaymentResult(result);
-    finishSale(result);
+    void finishSale(result);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [total, cancelPosnet]);
 
   // ── Internal ─────────────────────────────────────────────
-  function finishSale(result: PaymentResult) {
-    const orderNumber = `PO-${Date.now().toString().slice(-6)}`;
-
-    // Create a pedido via the admin orders API
-    ordersAdmin.create({
-      name: `Pedido ${orderNumber}`,
-      orderNumber,
-      customer: "POS — Venta directa",
-      total,
-      status: "active",
-      owner: "POS",
+  async function finishSale(result: PaymentResult) {
+    const order = await ordersAdmin.create({
+      customer_name: "POS - Venta directa",
+      customer_email: "",
+      customer_phone: "",
+      status: "confirmed",
+      payment_method: result.method,
+      payment_status: "paid",
+      delivery_type: "pickup",
+      notes: result.reference ? `Referencia POS: ${result.reference}` : "Venta POS",
+      items: items.map((item) => ({
+        product: item.product.id,
+        product_name: item.variant
+          ? `${item.product.name} (${item.variant.name})`
+          : item.product.name,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+      })),
     });
+
+    const orderNumber =
+      typeof order.order_number === "string"
+        ? order.order_number
+        : `POS-${Date.now().toString().slice(-6)}`;
 
     setCompletedSale({
       items: [...items],

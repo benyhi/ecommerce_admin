@@ -21,11 +21,13 @@ import {
 import { IconEdit, IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { ResourceName, useAuth } from "@/context/AuthContext";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { ImagePickerField } from "@/components/common/ImagePickerModal";
+import { categoriesAdmin } from "@/lib/api/services/admin.service";
+import { ApiError } from "@/lib/api/types";
 import {
   ResourceConfig,
   ResourceField,
@@ -332,8 +334,38 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   onSubmit,
 }) => {
   const [values, setValues] = useState<Record<string, unknown>>(initialValues);
+  const [dynamicOptions, setDynamicOptions] = useState<Record<string, { value: string; label: string }[]>>({});
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const needsCategories = config.fields.some((field) => field.optionSource === "categorias");
+    if (!needsCategories) return;
+
+    let mounted = true;
+    categoriesAdmin
+      .list()
+      .then((result) => {
+        const rows = Array.isArray(result) ? result : result.results ?? [];
+        const options = rows.map((row) => ({
+          value: String(row.id),
+          label: String(row.name ?? row.id),
+        }));
+        if (mounted) {
+          setDynamicOptions((prev) => ({ ...prev, categorias: options }));
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setDynamicOptions((prev) => ({ ...prev, categorias: [] }));
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [config.fields]);
 
   const updateField = (field: ResourceField, value: unknown) => {
     setValues((prev) => ({ ...prev, [field.key]: value }));
@@ -352,10 +384,25 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setFormError(null);
     if (!validate()) return;
     setSubmitting(true);
     try {
       await onSubmit(values);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const fieldErrors = Object.fromEntries(
+          Object.entries(error.fieldErrors).map(([key, messages]) => [key, messages.join(" ")]),
+        );
+        setErrors((prev) => ({ ...prev, ...fieldErrors }));
+        setFormError(
+          error.message !== `Request failed with status ${error.status}`
+            ? error.message
+            : "No se pudo guardar. Revisá los campos marcados.",
+        );
+        return;
+      }
+      setFormError("No se pudo guardar. Intentá nuevamente.");
     } finally {
       setSubmitting(false);
     }
@@ -363,7 +410,6 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
   const renderField = (field: ResourceField) => {
     const commonProps = {
-      key: field.key,
       label: field.label,
       placeholder: field.placeholder,
       withAsterisk: field.required,
@@ -371,10 +417,15 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     } as const;
 
     if (field.type === "select") {
+      const options = field.optionSource
+        ? dynamicOptions[field.optionSource] ?? []
+        : field.options ?? [];
+
       return (
         <Select
+          key={field.key}
           {...commonProps}
-          data={field.options ?? []}
+          data={options}
           value={(values[field.key] as string | null) ?? null}
           onChange={(value) => updateField(field, value)}
           clearable
@@ -385,6 +436,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     if (field.type === "number") {
       return (
         <NumberInput
+          key={field.key}
           {...commonProps}
           value={Number(values[field.key]) || 0}
           onChange={(value) => updateField(field, value ?? 0)}
@@ -408,6 +460,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     if (field.type === "textarea") {
       return (
         <Textarea
+          key={field.key}
           {...commonProps}
           value={(values[field.key] as string) ?? ""}
           onChange={(event) => updateField(field, event.currentTarget.value)}
@@ -432,6 +485,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
     return (
       <TextInput
+        key={field.key}
         {...commonProps}
         value={(values[field.key] as string) ?? ""}
         onChange={(event) => updateField(field, event.currentTarget.value)}
@@ -442,6 +496,11 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap="md">
+        {formError && (
+          <Text c="red" size="sm" fw={600}>
+            {formError}
+          </Text>
+        )}
         {config.fields.map((field) => renderField(field))}
         <Group justify="flex-end">
           <Button variant="default" onClick={() => modals.closeAll()}>

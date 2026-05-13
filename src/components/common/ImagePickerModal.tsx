@@ -141,7 +141,14 @@ export function ImagePickerModal({ opened, onClose, onSelect }: ImagePickerModal
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Seleccionar imagen" size="xl" scrollAreaComponent={undefined}>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Seleccionar imagen"
+      size="xl"
+      zIndex={3000}
+      scrollAreaComponent={undefined}
+    >
       <Stack gap="md">
         <Group>
           <TextInput
